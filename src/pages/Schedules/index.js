@@ -1,7 +1,7 @@
+/* eslint-disable max-len */
 import React, { useEffect, useState } from 'react';
-import DatePicker from 'react-datepicker';
 import {
-  Formik, useFormikContext, useField, Form, Field,
+  Formik, Form, Field,
 } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -14,41 +14,25 @@ import 'react-datepicker/dist/react-datepicker.css';
 import axios from '../../services/api';
 import Loading from '../../components/Loading';
 import TableSchedules from '../../components/Table';
-
-function DatePickerField({ ...props }) {
-  const { setFieldValue } = useFormikContext();
-  const [field] = useField(props);
-
-  return (
-    <DatePicker
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...field}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...props}
-      selected={(field.value && new Date(field.value)) || null}
-      onChange={(val) => {
-        setFieldValue(field.name, val);
-      }}
-    />
-  );
-}
+import DatePickerField from '../../components/DatePickerField';
 
 function Schedules() {
   const titlePage = 'Search Schedule';
 
   const [schedules, setSchedules] = useState([]);
   const [isLoading, setLoading] = useState(false);
+  const [allSchedules, setAllSchedules] = useState(false);
 
   useEffect(() => {
     const date = (JSON.stringify(new Date())).split('T')[0].replace(/^./, '');
     axios.get(`/schedule/date/${date}`).then((response) => setSchedules(response.data));
   }, []);
 
-  const onSearchSchedule = (date) => {
+  const onSearchSchedule = (url) => {
     setLoading(true);
 
     setTimeout(async () => {
-      await axios.get(`/schedule/date/${date}`)
+      await axios.get(url)
         .then((response) => setSchedules(response.data))
         .catch(() => setSchedules([]));
       setLoading(false);
@@ -82,7 +66,8 @@ function Schedules() {
           const date = (JSON.stringify(values.dateTime)).split('T')[0].replace(/^./, '');
           // console.log(date);
 
-          onSearchSchedule(date);
+          onSearchSchedule(`/schedule/date/${date}`);
+          setAllSchedules(false);
         }}
       >
         {({ errors, touched }) => (
@@ -104,6 +89,8 @@ function Schedules() {
             </InputWrapper>
 
             <Button mt={8} type="submit">{titlePage}</Button>
+
+            <Button ml={8} onClick={() => { onSearchSchedule('/schedule'); setAllSchedules(true); }}>All Schedules</Button>
           </Form>
         )}
       </Formik>
@@ -114,7 +101,7 @@ function Schedules() {
 
       <Space h="xl" />
 
-      <TableSchedules schedules={schedules} setSchedules={setSchedules} />
+      <TableSchedules schedules={schedules} setSchedules={setSchedules} allSchedules={allSchedules} />
     </>
   );
 }

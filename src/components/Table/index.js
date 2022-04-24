@@ -4,8 +4,8 @@ import React, { useEffect } from 'react';
 import { Table, Switch } from '@mantine/core';
 import axios from '../../services/api';
 
-function TableSchedules({ schedules, setSchedules }) {
-  useEffect(() => {}, [schedules]);
+function TableSchedules({ schedules, setSchedules, allSchedules }) {
+  useEffect(() => {}, [schedules, allSchedules]);
 
   // eslint-disable-next-line no-unused-vars
   const onFinished = async (schedule) => {
@@ -20,11 +20,15 @@ function TableSchedules({ schedules, setSchedules }) {
       delete (scheduleUpdated.birthDate);
     }
 
-    // console.log({ scheduleUpdated });
-    const date = (JSON.stringify(scheduleUpdated.dateTime)).split('T')[0].replace(/^./, '');
+    // const date = (JSON.stringify(scheduleUpdated.dateTime)).split('T')[0].replace(/^./, '');
+    const dateUrl = `${new Date(scheduleUpdated.dateTime).toLocaleDateString().split('/')[2]}-${new Date(scheduleUpdated.dateTime).toLocaleDateString().split('/')[1]}-${new Date(scheduleUpdated.dateTime).toLocaleDateString().split('/')[0]}`;
 
     await axios.put(`/schedule/${schedule.id}`, scheduleUpdated);
-    axios.get(`/schedule/date/${date}`).then((response) => setSchedules(response.data));
+    if (allSchedules) {
+      axios.get('/schedule').then((response) => setSchedules(response.data));
+    } else {
+      axios.get(`/schedule/date/${dateUrl}`).then((response) => setSchedules(response.data));
+    }
   };
 
   return (

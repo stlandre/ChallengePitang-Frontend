@@ -1,12 +1,11 @@
 import React from 'react';
-import DatePicker from 'react-datepicker';
 import {
-  Formik, Form, Field, useFormikContext, useField,
+  Formik, Form, Field,
 } from 'formik';
 import * as Yup from 'yup';
 
 import {
-  Title, TextInput, Alert, InputWrapper, Button,
+  Title, Alert, InputWrapper, Button, Switch, Space,
 } from '@mantine/core';
 
 import { showNotification } from '@mantine/notifications';
@@ -17,41 +16,16 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 import { useNavigate } from 'react-router-dom';
 import axios from '../../services/api';
-// import Loading from '../../components/Loading';
+import DatePickerField from '../../components/DatePickerField';
+import TextInputField from '../../components/TextInputField';
 
-function TextInputField({ ...props }) {
-  return (
-    <TextInput
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...props}
-    />
-  );
-}
-
-function DatePickerField({ ...props }) {
-  const { setFieldValue } = useFormikContext();
-  const [field] = useField(props);
-
-  return (
-    <DatePicker
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...field}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...props}
-      selected={(field.value && new Date(field.value)) || null}
-      onChange={(val) => {
-        setFieldValue(field.name, val);
-      }}
-    />
-  );
-}
-
-function Registry() {
+// eslint-disable-next-line react/prop-types
+function Registry({ redirect, setRedirect }) {
   const titlePage = 'Registry Schedule';
 
   const navigate = useNavigate();
 
-  const registrySchedule = async (values) => {
+  const registrySchedule = async (values, resetForm) => {
     const dateTimeS = JSON.stringify(values.dateTime);
     const dateT = dateTimeS.substring(1, dateTimeS.length - 1); // take quotes
 
@@ -75,7 +49,12 @@ function Registry() {
         message: 'Schedule created with success',
         title: `Success ${values.dateTime.toLocaleDateString()}`,
       });
-      navigate('/schedule');
+
+      resetForm();
+
+      if (redirect) {
+        navigate('/schedule');
+      }
     } catch {
       showNotification({
         message: 'Not was possible create Schedule',
@@ -103,6 +82,16 @@ function Registry() {
 
       <Title>{titlePage}</Title>
 
+      <Space h="xl" />
+
+      <Switch
+        checked={redirect}
+        onChange={() => {
+          setRedirect(!redirect);
+        }}
+        label="Redirect to Schedules after registry"
+      />
+
       <Formik
         initialValues={{
           name: '',
@@ -110,11 +99,11 @@ function Registry() {
           birthDate: '',
         }}
         validationSchema={scheduleSchema}
-        onSubmit={(values) => {
+        onSubmit={(values, { resetForm }) => {
         // same shape as initial values
           // console.log(values);
           // console.log(JSON.stringify(values.dateTime));
-          registrySchedule(values);
+          registrySchedule(values, resetForm);
         }}
       >
         {({ errors }) => (
@@ -126,6 +115,7 @@ function Registry() {
                 required
                 name="dateTime"
                 dateFormat="dd/MM/yyyy"
+                timeIntervals={60}
                 showTimeSelect
                 inline
               />
