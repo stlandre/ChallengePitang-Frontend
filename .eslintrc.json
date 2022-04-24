@@ -22,6 +22,7 @@
         "import"
     ],
     "rules": {
+        "linebreak-style": 0,// ["error", "windows"],
         "react/jsx-filename-extension": [
         "error",
         {
